@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KERNEL // REMOTE TERMINAL</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="boot">
+
+    <!-- CRT эффекты -->
+    <div class="scanlines"></div>
+    <div class="flicker"></div>
+    <div class="noise-overlay"></div>
+
+    <!-- Основной терминал -->
+    <main id="terminal" class="terminal">
+
+        <!-- Стартовый экран -->
+        <section id="bootScreen" class="boot-screen">
+            <pre id="bootText"></pre>
+            <div id="bootPrompt" class="boot-prompt"></div>
+            <button id="startBtn" class="start-btn" style="display:none;">[ START SESSION ]</button>
+        </section>
+
+        <!-- Контент терминала -->
+        <section id="content" class="content" style="display:none;"></section>
+
+        <!-- Поле ввода -->
+        <div id="inputLine" class="input-line" style="display:none;">
+            <span class="prompt-symbol">&gt;</span>
+            <span id="inputBuffer"></span><span class="cursor">█</span>
+            <span id="autoComplete" class="autocomplete"></span>
+        </div>
+
+    </main>
+
+    <!-- Аудио -->
+    <audio id="sndHum" loop></audio>
+    <audio id="sndBeep"></audio>
+    <audio id="sndType"></audio>
+    <audio id="sndGlitch"></audio>
+    <audio id="sndCrash"></audio>
+    <audio id="sndClick"></audio>
+
+    <!-- Скрытый input для мобилок -->
+    <input id="hiddenInput" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
+
+    <script src="js/data.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
