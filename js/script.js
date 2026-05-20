@@ -773,4 +773,21 @@ function renderInputBuffer() {
   } else {
     ac.textContent = '';
   }
+
+  // === ФИКС ДЛЯ МОБИЛОК: сохраняем позицию курсора ===
+  const hidden = $('#hiddenInput');
+  if (hidden && document.activeElement === hidden) {
+    const cursorPos = hidden.selectionStart;
+    if (cursorPos !== null && hidden.value !== STATE.inputBuffer) {
+      hidden.value = STATE.inputBuffer;
+      // Восстанавливаем позицию курсора (после того как обновили value)
+      setTimeout(() => {
+        hidden.setSelectionRange(cursorPos, cursorPos);
+      }, 0);
+    } else if (hidden.value !== STATE.inputBuffer) {
+      hidden.value = STATE.inputBuffer;
+    }
+  } else if (hidden && hidden.value !== STATE.inputBuffer) {
+    hidden.value = STATE.inputBuffer;
+  }
 }
