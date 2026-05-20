@@ -542,3 +542,19 @@ body.phase1 .noise-overlay {
   font-size: 1.1em;
   text-shadow: 0 0 6px rgba(51, 255, 51, 0.7);
 }
+
+.mobile-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.mobile-yes,
+.mobile-no {
+  cursor: pointer;
+  font-size: 1rem;
+}
+.mobile-yes:active,
+.mobile-no:active {
+  opacity: 0.7;
+}

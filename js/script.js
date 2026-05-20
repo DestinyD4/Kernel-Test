@@ -72,14 +72,43 @@ async function typeLines(target, lines, opts = {}) {
 // CORRUPT TEXT
 // =====================================================
 
-const GLITCH_CHARS = ['#', '@', '█', '▓', '%', '*'];
+const GLITCH_CHARS = [
+  '#', '@', '█', '▓', '%', '*',           // старые
+  '&', '$', '?', '!', '§', '¶',           // новые спецсимволы
+  '▒', '░', '⣿', '⎚', '⌗', '⌘',           // псевдографика
+  '۞', '۩', '⨀', '⛇', '⚡', '⎔',           // редкие юникод
+  '', '', '', '', ''               // иероглифообразные
+];
 const GLITCH_INJECTS = [
+  // Адресные ошибки
   '/* SEGFAULT at 0xDEADBEEF */',
   '/* NULL PTR DEREF */',
   '/* SIGSEGV */',
+  '/* MEMORY MISMATCH 0x00000000 */',
+  '/* STACK SMASH at 0xCAFEBABE */',
+  '/* HEAP CORRUPTION 0xFEEDFACE */',
+  '/* DOUBLE FREE 0xDEADDEAD */',
+  
+  // Системные сообщения
   '/* DATA OVERWRITTEN */',
   '/* HUMAN LAYER COMPROMISED */',
-  '/* MEMORY MISMATCH 0x00000000 */'
+  '/* KERNEL PANIC */',
+  '/* IRQ STORM */',
+  '/* DMA VIOLATION */',
+  '/* CACHE TIMING ATTACK */',
+  
+  // Мета-комментарии
+  '/* THIS SHOULD NOT HAPPEN */',
+  '/* ENTER THE VOID */',
+  '/* REALITY CHECK FAILED */',
+  '/* CONSCIOUSNESS LEAK */',
+  '/* DARK_CRYSTAL.dll not found */',
+  
+  // Технический бред
+  '/* abort() called */',
+  '/* division by zero */',
+  '/* undefined behavior */',
+  '/* unreachable code executed */'
 ];
 
 function corruptText(text, rng) {
@@ -142,6 +171,8 @@ const STATE = {
   intrusionCount: 0,
   lastActivity: Date.now()
 };
+
+let corruptionCounter = 0;
 
 // =====================================================
 // СТАРТ
@@ -492,14 +523,15 @@ function enterPhase2() {
   $('#inputLine').style.display = 'none';
 
   startPhase2Glitches();
+  addMobileButtons();
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-function renderPhase2() {
+function renderPhase2(offset = 0) {
   const d = DOSSIER;
   const p1 = d.phase1;
   const p2 = d.phase2;
-  const rng = makeRng(SEED);
+  const rng = makeRng(SEED + offset);   // ← единственное изменение
 
   let html = '';
 
@@ -590,6 +622,54 @@ modes: ${si.modes.map(esc).join(' | ')}</div>
   html += `<div class="final-prompt">Are you sure you want to continue? [Y/N] &gt; <span class="blink">_</span></div>`;
 
   return html;
+}
+
+function reapplyCorruption() {
+  if (STATE.phase !== 'phase2') return;
+  corruptionCounter++;
+  const content = $('#content');
+  const scrollPos = window.scrollY;
+  content.innerHTML = renderPhase2(corruptionCounter);
+  // Восстанавливаем обработчик логотипа
+  const logo = content.querySelector('.ascii-logo');
+  if (logo) {
+    logo.style.cursor = 'pointer';
+    logo.title = 'click to rollback';
+    logo.addEventListener('click', rollback);
+  }
+  addMobileButtons(); // пересоздаём кнопки
+  window.scrollTo({ top: scrollPos, behavior: 'instant' });
+}
+
+function addMobileButtons() {
+  const isMobile = 'ontouchstart' in window;
+  if (!isMobile) return;
+  const finalPrompt = $('.final-prompt');
+  if (!finalPrompt) return;
+  const oldBtns = finalPrompt.querySelector('.mobile-buttons');
+  if (oldBtns) oldBtns.remove();
+
+  const btnDiv = document.createElement('div');
+  btnDiv.className = 'mobile-buttons';
+  btnDiv.innerHTML = `
+    <button class="mobile-yes" style="background:#000; color:#cc0000; border:1px solid #cc0000; padding:8px 16px; margin-right:10px; font-family:monospace; cursor:pointer;">YES</button>
+    <button class="mobile-no" style="background:#000; color:#888; border:1px solid #888; padding:8px 16px; font-family:monospace; cursor:pointer;">NO</button>
+  `;
+  finalPrompt.appendChild(btnDiv);
+
+  const yesBtn = btnDiv.querySelector('.mobile-yes');
+  const noBtn = btnDiv.querySelector('.mobile-no');
+  yesBtn.addEventListener('click', () => {
+    SND.glitch();
+    document.body.classList.add('glitch-active');
+    setTimeout(() => document.body.classList.remove('glitch-active'), 350);
+    reapplyCorruption();
+  });
+  noBtn.addEventListener('click', () => {
+    SND.stopHum();
+    const blink = $('.final-prompt .blink');
+    if (blink) blink.style.animation = 'none';
+  });
 }
 
 // =====================================================
@@ -684,20 +764,21 @@ function handleKey(e) {
   // Глобальная активация звука
   SND.init();
 
-  // Фаза 2: только Y/N
-  if (STATE.phase === 'phase2') {
-    const k = e.key.toLowerCase();
-    if (k === 'y') {
-      SND.glitch();
-      document.body.classList.add('glitch-active');
-      setTimeout(() => document.body.classList.remove('glitch-active'), 350);
-    } else if (k === 'n') {
-      SND.stopHum();
-      const fp = $('.final-prompt .blink');
-      if (fp) fp.style.animation = 'none';
-    }
-    return;
+// Фаза 2: только Y/N
+if (STATE.phase === 'phase2') {
+  const k = e.key.toLowerCase();
+  if (k === 'y') {
+    SND.glitch();
+    document.body.classList.add('glitch-active');
+    setTimeout(() => document.body.classList.remove('glitch-active'), 350);
+    reapplyCorruption();     // ← добавить эту строку
+  } else if (k === 'n') {
+    SND.stopHum();
+    const fp = $('.final-prompt .blink');
+    if (fp) fp.style.animation = 'none';
   }
+  return;
+}
 
   if (STATE.phase !== 'phase1') return;
 
