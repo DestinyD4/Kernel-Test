@@ -318,8 +318,8 @@ function resetIdleTimer() {
   if (STATE.phase !== 'phase1') return;
 
   const delay = STATE.intrusionCount === 0
-    ? 25000 + Math.random() * 15000
-    : 30000;
+    ? 5000 + Math.random() * 3000
+    : 6000;
 
   STATE.idleTimer = setTimeout(triggerIntrusion, delay);
 }
@@ -338,13 +338,13 @@ async function triggerIntrusion() {
   SND.setHum(70 + STATE.intrusionCount * 10, 0.05);
   SND.beep(440, 0.1, 0.08, 'sawtooth');
 
-  const lines = [
-    'SYSTEM NOTICE:',
-    'Unauthorized modification detected.',
-    'Archive checksum mismatch.',
-    'File integrity compromised.',
-    'Type /update to inspect changes.'
-  ];
+const lines = [
+  'СИСТЕМНОЕ УВЕДОМЛЕНИЕ:',
+  'Обнаружено НСД-вмешательство.',
+  'Контрольная сумма архива не сходится.',
+  'Целостность файлов нарушена.',
+  'Введите "update" для применения изменений.'
+];
 
   await typeLines(notice, lines, { lineDelay: 280, sound: false });
 
@@ -365,24 +365,29 @@ function executeCommand(cmd) {
   cmd = cmd.trim().toLowerCase();
   if (!cmd) return;
 
+  // Убираем слеш если есть
+  let clean = cmd;
+  if (clean.startsWith('/')) {
+    clean = clean.slice(1);
+  }
+
   STATE.history.push(cmd);
   STATE.historyIdx = STATE.history.length;
 
   if (STATE.phase === 'phase1') {
-    if (['/status','/appearance','/personality','/history','/abilities'].includes(cmd)) {
-      const id = cmd.slice(1);
-      const el = document.getElementById(id);
+    if (clean === 'status' || clean === 'appearance' || clean === 'personality' || clean === 'history' || clean === 'abilities') {
+      const el = document.getElementById(clean);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       SND.click();
       return;
     }
-    if (cmd === '/update') {
+    if (clean === 'update') {
       triggerKernelPanic();
       return;
     }
   }
 
-  if (cmd === '/rollback' && STATE.phase === 'phase2') {
+  if (clean === 'rollback' && STATE.phase === 'phase2') {
     rollback();
     return;
   }
