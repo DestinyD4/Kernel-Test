@@ -349,8 +349,8 @@ function resetIdleTimer() {
   if (STATE.phase !== 'phase1') return;
 
   const delay = STATE.intrusionCount === 0
-    ? 5000 + Math.random() * 3000
-    : 6000;
+    ? 35000 + Math.random() * 13000
+    : 46000;
 
   STATE.idleTimer = setTimeout(triggerIntrusion, delay);
 }
